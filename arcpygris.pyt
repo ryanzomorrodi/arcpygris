@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import arcpy, arcpy_helpers
-import enumeration_units, tribal_native_areas, legislative_areas, metro_areas_places, nation, landmarks, fips
+import enumeration_units, tribal_native_areas, legislative_areas, metro_areas_places, nation, landmarks, transportation, water, fips
 
 import importlib
 importlib.reload(legislative_areas)
@@ -14,7 +14,7 @@ class Toolbox:
         self.alias = "arcpygris"
 
         # List of tool classes associated with this toolbox
-        self.tools = [EnumerationUnits, TribalNativeAreas, LegislativeAreas, MetroAreasPlaces, Nation, Landmarks]
+        self.tools = [EnumerationUnits, TribalNativeAreas, LegislativeAreas, MetroAreasPlaces, Nation, Landmarks, Transportation, Water]
 
 class EnumerationUnits:
     def __init__(self):
@@ -1248,6 +1248,280 @@ class Landmarks:
 
         getattr(landmarks, geo_mod).download(
             geom_type = req_geom_type,
+            year = req_year,
+            states = req_states,
+            output_path = req_out_feature
+        )
+
+        return
+
+    def postExecute(self, parameters):
+        """This method takes place after outputs are processed and
+        added to the display."""
+
+        return
+    
+class Transportation:
+    def __init__(self):
+        """Define the tool (tool name is the name of the class)."""
+        self.label = "Transportation"
+        self.description = ""
+
+    def getParameterInfo(self):
+        """Define the tool parameters."""
+
+        param_req = arcpy.Parameter(
+            displayName = "Request Parameters",
+            name = "InputTableFields",
+            datatype = "GPValueTable",
+            parameterType = "Required",
+            direction = "Input"
+        )
+        param_req.columns = [['String', 'Geography'], ['String', 'Year']]
+        param_req.filters[0].type = "ValueList"
+        param_req.filters[0].list = ["Road", "Primary Road", "Primary Secondary Road", "Rail", "Address Range"]
+        param_req.filters[1].type = "ValueList"
+        param_req.controlCLSID = '{1A1CA7EC-A47A-4187-A15C-6EDBA4FE0CF7}'
+
+        param_states = arcpy.Parameter(
+            displayName = "States",
+            name = "States",
+            datatype = "GPValueTable",
+            parameterType = "Optional",
+            direction = "Input"
+        )
+        param_states.columns = [['String', 'States']]
+        param_states.filters[0].type = "ValueList"
+        param_states.filters[0].list = list(fips.state_to_fips.keys())
+
+        param_out_feature = arcpy.Parameter(
+            displayName="Output Feature",
+            name="OutputFeature",
+            datatype="GPFeatureLayer",
+            parameterType="Required",
+            direction="Output"
+        )
+
+        params = [
+            param_req,
+            param_states,
+            param_out_feature
+        ]
+        return params
+
+    def isLicensed(self):
+        """Set whether the tool is licensed to execute."""
+        return True
+
+    def updateParameters(self, parameters):
+        """Modify the values and properties of parameters before internal
+        validation is performed.  This method is called whenever a parameter
+        has been changed."""
+
+        param_req = parameters[0]
+        param_states = parameters[1]
+        param_out_feature = parameters[2]
+
+        req_vals = arcpy_helpers.get_valueTableValues(param_req)[0]
+        req_geography = req_vals[0]
+        req_year = req_vals[1]
+        req_states = param_states.values
+        req_out_feature = param_out_feature.valueAsText
+
+        # determine years by geography
+        if req_geography:
+            geo_mod = req_geography.lower().replace(" ", "_")
+            param_req.filters[1].list = getattr(transportation, geo_mod).years
+
+        # state visibility
+        if req_geography == "Road":
+            param_states.enabled = True
+        elif req_geography == "Primary Secondary Road":
+            param_states.enabled = True
+        elif req_geography == "Address Range":
+            param_states.enabled = True
+        else:
+            param_states.enabled = False
+            param_states.value = None
+        
+        return
+
+    def updateMessages(self, parameters):
+        """Modify the messages created by internal validation for each tool
+        parameter. This method is called after internal validation."""
+
+        param_req = parameters[0]
+        param_states = parameters[1]
+        param_out_feature = parameters[2]
+
+        req_vals = arcpy_helpers.get_valueTableValues(param_req)[0]
+        req_geography = req_vals[0]
+        req_year = req_vals[1]
+        req_states = param_states.values
+        req_out_feature = param_out_feature.valueAsText
+
+        if req_geography == "Road":
+            arcpy_helpers.set_parameterRequired(param_states)
+        if req_geography == "Primary Secondary Road":
+            arcpy_helpers.set_parameterRequired(param_states)
+        if req_geography == "Address Range":
+            arcpy_helpers.set_parameterRequired(param_states)
+
+        return
+
+    def execute(self, parameters, messages):
+        """The source code of the tool."""
+
+        param_req = parameters[0]
+        param_states = parameters[1]
+        param_out_feature = parameters[2]
+
+        req_vals = arcpy_helpers.get_valueTableValues(param_req)[0]
+        req_geography = req_vals[0]
+        req_year = req_vals[1]
+        req_states = param_states.values
+        if req_states:
+            req_states = [state[0] for state in param_states.values]
+        req_out_feature = param_out_feature.valueAsText
+
+        geo_mod = req_geography.lower().replace(" ", "_")
+
+        getattr(transportation, geo_mod).download(
+            year = req_year,
+            states = req_states,
+            output_path = req_out_feature
+        )
+
+        return
+
+    def postExecute(self, parameters):
+        """This method takes place after outputs are processed and
+        added to the display."""
+
+        return
+    
+class Water:
+    def __init__(self):
+        """Define the tool (tool name is the name of the class)."""
+        self.label = "Water"
+        self.description = ""
+
+    def getParameterInfo(self):
+        """Define the tool parameters."""
+
+        param_req = arcpy.Parameter(
+            displayName = "Request Parameters",
+            name = "InputTableFields",
+            datatype = "GPValueTable",
+            parameterType = "Required",
+            direction = "Input"
+        )
+        param_req.columns = [['String', 'Geography'], ['String', 'Year']]
+        param_req.filters[0].type = "ValueList"
+        param_req.filters[0].list = ["Area Water", "Linear Water", "Coastline"]
+        param_req.filters[1].type = "ValueList"
+        param_req.controlCLSID = '{1A1CA7EC-A47A-4187-A15C-6EDBA4FE0CF7}'
+
+        param_states = arcpy.Parameter(
+            displayName = "States",
+            name = "States",
+            datatype = "GPValueTable",
+            parameterType = "Optional",
+            direction = "Input"
+        )
+        param_states.columns = [['String', 'States']]
+        param_states.filters[0].type = "ValueList"
+        param_states.filters[0].list = list(fips.state_to_fips.keys())
+
+        param_out_feature = arcpy.Parameter(
+            displayName="Output Feature",
+            name="OutputFeature",
+            datatype="GPFeatureLayer",
+            parameterType="Required",
+            direction="Output"
+        )
+
+        params = [
+            param_req,
+            param_states,
+            param_out_feature
+        ]
+        return params
+
+    def isLicensed(self):
+        """Set whether the tool is licensed to execute."""
+        return True
+
+    def updateParameters(self, parameters):
+        """Modify the values and properties of parameters before internal
+        validation is performed.  This method is called whenever a parameter
+        has been changed."""
+
+        param_req = parameters[0]
+        param_states = parameters[1]
+        param_out_feature = parameters[2]
+
+        req_vals = arcpy_helpers.get_valueTableValues(param_req)[0]
+        req_geography = req_vals[0]
+        req_year = req_vals[1]
+        req_states = param_states.values
+        req_out_feature = param_out_feature.valueAsText
+
+        # determine years by geography
+        if req_geography:
+            geo_mod = req_geography.lower().replace(" ", "_")
+            param_req.filters[1].list = getattr(water, geo_mod).years
+
+        # state visibility
+        if req_geography == "Area Water":
+            param_states.enabled = True
+        elif req_geography == "Linear Water":
+            param_states.enabled = True
+        else:
+            param_states.enabled = False
+            param_states.value = None
+        
+        return
+
+    def updateMessages(self, parameters):
+        """Modify the messages created by internal validation for each tool
+        parameter. This method is called after internal validation."""
+
+        param_req = parameters[0]
+        param_states = parameters[1]
+        param_out_feature = parameters[2]
+
+        req_vals = arcpy_helpers.get_valueTableValues(param_req)[0]
+        req_geography = req_vals[0]
+        req_year = req_vals[1]
+        req_states = param_states.values
+        req_out_feature = param_out_feature.valueAsText
+
+        if req_geography == "Area Water":
+            arcpy_helpers.set_parameterRequired(param_states)
+        if req_geography == "Linear Water":
+            arcpy_helpers.set_parameterRequired(param_states)
+
+        return
+
+    def execute(self, parameters, messages):
+        """The source code of the tool."""
+
+        param_req = parameters[0]
+        param_states = parameters[1]
+        param_out_feature = parameters[2]
+
+        req_vals = arcpy_helpers.get_valueTableValues(param_req)[0]
+        req_geography = req_vals[0]
+        req_year = req_vals[1]
+        req_states = param_states.values
+        if req_states:
+            req_states = [state[0] for state in param_states.values]
+        req_out_feature = param_out_feature.valueAsText
+
+        geo_mod = req_geography.lower().replace(" ", "_")
+
+        getattr(water, geo_mod).download(
             year = req_year,
             states = req_states,
             output_path = req_out_feature
