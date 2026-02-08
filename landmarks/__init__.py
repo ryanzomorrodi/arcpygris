@@ -1,1 +1,0 @@
-from . import landmark, military_installation
