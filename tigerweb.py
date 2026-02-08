@@ -140,7 +140,6 @@ async def available_year_services(geo: str, cb: bool) -> dict:
         in_regex = re.compile(rf"^{re.escape(geo)}$")
 
     urls = cb_urls | tigerweb_urls | census_urls
-    print(urls)
 
     url_list = list(urls.values())
     data_list = await asyncio.gather(
