@@ -231,6 +231,8 @@ class EnumerationUnits(ArcpygrisTool):
             "States",
             "Counties",
             "Census Tracts",
+            "Census Block Groups",
+            "Census Blocks",
             "Zip Code Tabulation Areas",
         ]
 
