@@ -19,7 +19,7 @@ Since `arcpygris` relies on the Census TIGERweb servers, new years of Census geo
 | Counties                                     | Enumeration Units                                         | 2000, 2010, 2012-2025      |
 | Census Tracts                                | Enumeration Units                                         | 2000, 2010, 2012-2025      |
 | Census Block Groups                          | Enumeration Units                                         | 2000, 2010, 2012-2025      |
-| Census Block                                 | Enumeration Units                                         | 2000, 2010                 |
+| Census Block                                 | Enumeration Units                                         | 2000, 2010, 2020           |
 | Zip Code Tabulation Areas                    | Enumeration Units                                         | 2000, 2010, 2020           |
 | Metropolitan New England City and Town Areas | Core-Based Statistical Areas                              | 2010, 2012-2021            |
 | Micropolitan New England City and Town Areas | Core-Based Statistical Areas                              | 2010, 2012-2021            |
