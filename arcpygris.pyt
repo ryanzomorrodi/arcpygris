@@ -13,7 +13,7 @@ class Toolbox:
         self.label = "arcpygris"
         self.alias = "arcpygris"
 
-        self.tools = [EnumerationUnits, CBSAs, Legislative, Schools, AIANNHA]
+        self.tools = [PrimaryNestedGeographies, CBSAs, Legislative, Schools, AIANNHA]
 
 
 class ArcpygrisTool:
@@ -233,10 +233,10 @@ class ArcpygrisTool:
         return
 
 
-class EnumerationUnits(ArcpygrisTool):
+class PrimaryNestedGeographies(ArcpygrisTool):
     def __init__(self):
         super().__init__()
-        self.label = "Enumeration Units"
+        self.label = "Primary Nested Geographies"
         self.geography_list = [
             "Census Divisions",
             "Census Regions",
