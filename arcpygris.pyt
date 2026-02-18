@@ -13,7 +13,7 @@ class Toolbox:
         self.label = "arcpygris"
         self.alias = "arcpygris"
 
-        self.tools = [EnumerationUnits, CBSAs, Schools, AIANNHA]
+        self.tools = [EnumerationUnits, CBSAs, Legislative, Schools, AIANNHA]
 
 
 class ArcpygrisTool:
@@ -196,8 +196,20 @@ class ArcpygrisTool:
         map_server = map_servers[years.index(req_year)]
         map_server_layers = server_layers[map_server]
 
-        layer_name = f"{req_geography} {req_resolution}" if req_cb else req_geography
-        layer_id = map_server_layers[layer_name]
+        std_layer_name = (
+            f"{req_geography} {req_resolution}" if req_cb else req_geography
+        )
+        true_layer_name = next(
+            layer
+            for layer in map_server_layers.keys()
+            if layer.endswith(std_layer_name)
+        )
+        layer_id = map_server_layers[true_layer_name]
+        if (
+            std_layer_name != true_layer_name
+            and f"{req_year} {std_layer_name}" != true_layer_name
+        ):
+            messages.addWarningMessage(f"Returning {true_layer_name}.")
 
         arc_project = arcpy.mp.ArcGISProject("Current")
         cur_map = arc_project.activeMap
@@ -291,4 +303,16 @@ class AIANNHA(ArcpygrisTool):
             "Alaska Native Regional Corporations",
             "Alaska Native Village Statistical Areas",
             "Hawaiian Home Lands",
+        ]
+
+
+class Legislative(ArcpygrisTool):
+    def __init__(self):
+        super().__init__()
+        self.label = "Legislative"
+        self.geography_list = [
+            "Congressional Districts",
+            "State Legislative Districts - Upper",
+            "State Legislative Districts - Lower",
+            "Voting Districts",
         ]

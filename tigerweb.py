@@ -44,6 +44,10 @@ cb_server_dict = {
     "State Designated Tribal Statistical Areas": "AIANNHA",
     "Tribal Designated Statistical Areas": "AIANNHA",
     "American Indian Joint-Use Areas ": "AIANNHA",
+    "Congressional Districts": "Legislative",
+    "State Legislative Districts - Upper": "Legislative",
+    "State Legislative Districts - Lower": "Legislative",
+    "Voting Districts": "Legislative",
 }
 
 is_state_subsettable = [
@@ -56,6 +60,10 @@ is_state_subsettable = [
     "Unified School Districts",
     "Secondary School Districts",
     "Elementary School Districts",
+    "Congressional Districts",
+    "State Legislative Districts - Upper",
+    "State Legislative Districts - Lower",
+    "Voting Districts",
 ]
 
 state_to_fips = {
@@ -131,13 +139,15 @@ async def available_year_services(geo: str, cb: bool) -> dict:
     census_urls = {}
     if cb:
         cb_urls = await available_year_map_servers(http_client, geo, cb, False)
-        in_regex = re.compile(rf"^{re.escape(geo)} \d+[A-Z]$")
+        in_regex = re.compile(
+            rf"^(?:\d{{4}}|\d+(?:st|nd|rd|th))? ?{re.escape(geo)} \d+[A-Z]$"
+        )
     else:
         tigerweb_urls, census_urls = await asyncio.gather(
             available_year_map_servers(http_client, geo, cb, False),
             available_year_map_servers(http_client, geo, cb, True),
         )
-        in_regex = re.compile(rf"^{re.escape(geo)}$")
+        in_regex = re.compile(rf"^(?:\d{{4}}|\d+(?:st|nd|rd|th))? ?{re.escape(geo)}$")
 
     urls = cb_urls | tigerweb_urls | census_urls
 
