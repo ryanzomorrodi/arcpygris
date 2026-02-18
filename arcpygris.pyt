@@ -261,11 +261,13 @@ class CBSAs(ArcpygrisTool):
         super().__init__()
         self.label = "Core-Based Statistical Areas"
         self.geography_list = [
-            "Metropolitan New England City and Town Areas",
-            "Micropolitan New England City and Town Areas",
             "Combined Statistical Areas",
             "Metropolitan Statistical Areas",
             "Micropolitan Statistical Areas",
+            "Metropolitan New England City and Town Areas",
+            "Micropolitan New England City and Town Areas",
+            "Combined New England City and Town Areas",
+            "New England City and Town Area Divisions",
         ]
 
 
