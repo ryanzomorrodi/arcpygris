@@ -13,7 +13,14 @@ class Toolbox:
         self.label = "arcpygris"
         self.alias = "arcpygris"
 
-        self.tools = [PrimaryNestedGeographies, CBSAs, Legislative, Schools, AIANNHA]
+        self.tools = [
+            PrimaryNestedGeographies,
+            CBSAs,
+            Places,
+            Legislative,
+            Schools,
+            AIANNHA,
+        ]
 
 
 class ArcpygrisTool:
