@@ -1,5 +1,3 @@
-
-
 # arcpygris
 
 `arcpygris` is an ArcGIS Pro python toolbox, inspired by the `tigris` R
