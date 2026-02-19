@@ -25,9 +25,11 @@ To do so,
 
 ## Currently Supported Geographies
 
-Since `arcpygris` relies on the Census TIGERweb servers, new years of
-Census geographies will be added as soon as they uploaded to TIGERweb.
-These are the current available years as of February 18, 2026.
+Since `arcpygris` relies on the [Census
+TIGERweb](https://tigerweb.geo.census.gov/tigerwebmain/TIGERweb_main.html),
+new years of Census geographies will be added as soon as they are
+uploaded to TIGERweb. These are the current available years as of
+February 19, 2026.
 
 | Geography | Group | TIGER/Line Years | Cartographic Years |
 |:---|:---|:---|:---|
