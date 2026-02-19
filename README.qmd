@@ -1,0 +1,87 @@
+---
+format: gfm
+---
+
+# arcpygris
+
+`arcpygris` is an ArcGIS Pro python toolbox, inspired by the `tigris` R package, that facilites the seamless loading of US Census TIGER/Line or cartographic boundaries into an ArcGIS Pro project. 
+
+![](preview.png)
+
+## Adding as a default toolbox
+
+To make arcpygris accessible at all times, make it your default toolbox for new projects.
+
+To do so,
+
+1. Open up ArcGIS Pro
+2. Click on **Settings** -> **Options** -> **General**
+3. Expand the **Create Projects** dropdown and expand **On local or network computer**
+4. Under **Default Toolbox**, choose **Same default toolbox for all projects** and set the path to `arcpygris`.
+5. Press **OK** and you're all set!
+
+![](set_as_default.png)
+
+## Currently Supported Geographies
+
+```{python}
+#| echo: false
+from datetime import datetime
+
+now = datetime.now()
+current_date = f"{now.strftime('%B')} {now.day}, {now.year}"
+```
+
+Since `arcpygris` relies on the Census TIGERweb servers, new years of Census geographies will be added as soon as they uploaded to TIGERweb. These are the current available years as of `{python} current_date`.
+
+```{python}
+#| echo: false
+#| output: asis
+
+from itertools import groupby, count
+import asyncio
+import pandas as pd
+import re
+import tigerweb
+
+
+def format_year_ranges(year_list):
+    years = sorted(map(int, year_list))
+
+    ranges = []
+    for _, g in groupby(years, key=lambda n, c=count(): n - next(c)):
+        group = list(g)
+        if len(group) > 1:
+            ranges.append(f"{group[0]}-{group[-1]}")
+        else:
+            ranges.append(str(group[0]))
+
+    return ", ".join(ranges)
+
+
+rows = []
+for group, geos in tigerweb.geo_groups.items():
+    for geo, geo_attrs in geos.items():
+        if geo_attrs["cb_server"]:
+            carto_services = asyncio.run(tigerweb.available_year_services(geo, True))
+            carto_years = [re.search(r".*(\d{4})", s).group(1) for s in carto_services]
+            carto_years = format_year_ranges(carto_years)
+        else:
+            carto_years = "N/A"
+
+        tiger_services = asyncio.run(tigerweb.available_year_services(geo, False))
+        tiger_years = [re.search(r".*(\d{4})", s).group(1) for s in tiger_services]
+        tiger_years = format_year_ranges(tiger_years)
+
+        rows.append(
+            {
+                "Geography": geo,
+                "Group": group,
+                "TIGER/Line Years": tiger_years,
+                "Cartographic Years": carto_years,
+            }
+        )
+
+df = pd.DataFrame(rows)
+print(df.to_markdown(index=False))
+```
