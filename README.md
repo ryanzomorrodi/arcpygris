@@ -2,15 +2,9 @@
 
 # arcpygris
 
-`arcpygris` is an ArcGIS Pro python toolbox that allows users to
-directly download TIGER/Line or cartographic boundaries from the US
-Census Bureau into an ArcGIS Pro project.
-
-Inspired by the [`tigris`](https://github.com/walkerke/tigris) R package
-and [`pygris`](https://github.com/walkerke/pygris) Python package,
-`arcpygris` is an ArcGIS Pro Python Toolbox that aims to make the
-process of working with Census geographies within ArcGIS Pro more
-seamless. Layers are added straight from the Census TIGERweb servers.
+`arcpygris` is an ArcGIS Pro python toolbox, inspired by the `tigris` R
+package, that facilites the seamless loading of US Census TIGER/Line or
+cartographic boundaries into an ArcGIS Pro project.
 
 ![](preview.png)
 
