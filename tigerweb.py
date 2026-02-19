@@ -6,6 +6,7 @@ import os
 import re
 import tempfile
 import tornado.httpclient
+from typing import TypedDict
 
 nest_asyncio.apply()
 base_url = "https://tigerweb.geo.census.gov/arcgis/rest/services/"
@@ -13,65 +14,171 @@ CACHE_DIR = os.path.join(tempfile.gettempdir(), "tigerweb_cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 
-cb_server_dict = {
-    "Census Divisions": "Region_Division",
-    "Census Regions": "Region_Division",
-    "States": "State_County",
-    "Counties": "State_County",
-    "County Subdivisions": "Places_CouSub_ConCity_SubMCD",
-    "Census Tracts": "Tracts_Blocks",
-    "Census Block Groups": "Tracts_Blocks",
-    "Combined New England City and Town Areas": "CBSA",
-    "New England City and Town Area Divisions": "CBSA",
-    "Metropolitan New England City and Town Areas": "CBSA",
-    "Micropolitan New England City and Town Areas": "CBSA",
-    "Combined Statistical Areas": "CBSA",
-    "Metropolitan Statistical Areas": "CBSA",
-    "Micropolitan Statistical Areas": "CBSA",
-    "Unified School Districts": "School",
-    "Secondary School Districts": "School",
-    "Elementary School Districts": "School",
-    "Subbarrios": "Places_CouSub_ConCity_SubMCD",
-    "Consolidated Cities": "Places_CouSub_ConCity_SubMCD",
-    "Incorporated Places": "Places_CouSub_ConCity_SubMCD",
-    "Census Designated Places": "Places_CouSub_ConCity_SubMCD",
-    "Tribal Census Tracts": "TribalTracts",
-    "Tribal Block Groups": "TribalTracts",
-    "Alaska Native Regional Corporations": "AIANNHA",
-    "Tribal Subdivisions": "AIANNHA",
-    "Federal American Indian Reservations": "AIANNHA",
-    "Off-Reservation Trust Lands": "AIANNHA",
-    "State American Indian Reservations": "AIANNHA",
-    "Hawaiian Home Lands": "AIANNHA",
-    "Alaska Native Village Statistical Areas": "AIANNHA",
-    "Oklahoma Tribal Statistical Areas": "AIANNHA",
-    "State Designated Tribal Statistical Areas": "AIANNHA",
-    "Tribal Designated Statistical Areas": "AIANNHA",
-    "American Indian Joint-Use Areas ": "AIANNHA",
-    "Congressional Districts": "Legislative",
-    "State Legislative Districts - Upper": "Legislative",
-    "State Legislative Districts - Lower": "Legislative",
-    "Voting Districts": "Legislative",
-}
+class GeoInfo(TypedDict):
+    cb_server: str | None
+    is_state_subsettable: bool
 
-is_state_subsettable = [
-    "States",
-    "Counties",
-    "County Subdivisions",
-    "Census Tracts",
-    "Census Block Groups",
-    "Census Blocks",
-    "Unified School Districts",
-    "Secondary School Districts",
-    "Consolidated Cities",
-    "Incorporated Places",
-    "Census Designated Places",
-    "Elementary School Districts",
-    "Congressional Districts",
-    "State Legislative Districts - Upper",
-    "State Legislative Districts - Lower",
-    "Voting Districts",
-]
+
+geo_groups: dict[str, dict[str, GeoInfo]] = {
+    "Primary Nested Geographies": {
+        "Census Divisions": {
+            "cb_server": "Region_Division",
+            "is_state_subsettable": False,
+        },
+        "Census Regions": {
+            "cb_server": "Region_Division",
+            "is_state_subsettable": False,
+        },
+        "States": {"cb_server": "State_County", "is_state_subsettable": True},
+        "Counties": {"cb_server": "State_County", "is_state_subsettable": True},
+        "County Subdivisions": {
+            "cb_server": "Places_CouSub_ConCity_SubMCD",
+            "is_state_subsettable": True,
+        },
+        "Census Tracts": {"cb_server": "Tracts_Blocks", "is_state_subsettable": True},
+        "Census Block Groups": {
+            "cb_server": "Tracts_Blocks",
+            "is_state_subsettable": True,
+        },
+        "Census Blocks": {"cb_server": None, "is_state_subsettable": True},
+        "Zip Code Tabulation Areas": {"cb_server": None, "is_state_subsettable": False},
+    },
+    "Places": {
+        "Subbarrios": {
+            "cb_server": "Places_CouSub_ConCity_SubMCD",
+            "is_state_subsettable": False,
+        },
+        "Consolidated Cities": {
+            "cb_server": "Places_CouSub_ConCity_SubMCD",
+            "is_state_subsettable": True,
+        },
+        "Incorporated Places": {
+            "cb_server": "Places_CouSub_ConCity_SubMCD",
+            "is_state_subsettable": True,
+        },
+        "Census Designated Places": {
+            "cb_server": "Places_CouSub_ConCity_SubMCD",
+            "is_state_subsettable": True,
+        },
+    },
+    "Legislative": {
+        "Congressional Districts": {
+            "cb_server": "Legislative",
+            "is_state_subsettable": True,
+        },
+        "State Legislative Districts - Upper": {
+            "cb_server": "Legislative",
+            "is_state_subsettable": True,
+        },
+        "State Legislative Districts - Lower": {
+            "cb_server": "Legislative",
+            "is_state_subsettable": True,
+        },
+        "Voting Districts": {
+            "cb_server": "Legislative",
+            "is_state_subsettable": True,
+        },
+    },
+    "Schools": {
+        "Unified School Districts": {
+            "cb_server": "School",
+            "is_state_subsettable": True,
+        },
+        "Secondary School Districts": {
+            "cb_server": "School",
+            "is_state_subsettable": True,
+        },
+        "Elementary School Districts": {
+            "cb_server": "School",
+            "is_state_subsettable": True,
+        },
+    },
+    "Core-Based Statistical Areas": {
+        "Combined Statistical Areas": {
+            "cb_server": "CBSA",
+            "is_state_subsettable": False,
+        },
+        "Metropolitan Statistical Areas": {
+            "cb_server": "CBSA",
+            "is_state_subsettable": False,
+        },
+        "Micropolitan Statistical Areas": {
+            "cb_server": "CBSA",
+            "is_state_subsettable": False,
+        },
+        "Metropolitan New England City and Town Areas": {
+            "cb_server": "CBSA",
+            "is_state_subsettable": False,
+        },
+        "Micropolitan New England City and Town Areas": {
+            "cb_server": "CBSA",
+            "is_state_subsettable": False,
+        },
+        "Combined New England City and Town Areas": {
+            "cb_server": "CBSA",
+            "is_state_subsettable": False,
+        },
+        "New England City and Town Area Divisions": {
+            "cb_server": "CBSA",
+            "is_state_subsettable": False,
+        },
+    },
+    "American Indian, Alaska Native, and Native Hawaiian Areas": {
+        "Tribal Census Tracts": {
+            "cb_server": "TribalTracts",
+            "is_state_subsettable": False,
+        },
+        "Tribal Block Groups": {
+            "cb_server": "TribalTracts",
+            "is_state_subsettable": False,
+        },
+        "Tribal Subdivisions": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+        "Tribal Designated Statistical Areas": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+        "State Designated Tribal Statistical Areas": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+        "Oklahoma Tribal Statistical Areas": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+        "Federal American Indian Reservations": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+        "State American Indian Reservations": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+        "American Indian Joint-Use Areas": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+        "Off-Reservation Trust Lands": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+        "Alaska Native Regional Corporations": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+        "Alaska Native Village Statistical Areas": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+        "Hawaiian Home Lands": {
+            "cb_server": "AIANNHA",
+            "is_state_subsettable": False,
+        },
+    },
+}
+geo_info = {k: v for sub in geo_groups.values() for k, v in sub.items()}
 
 state_to_fips = {
     "Alabama": "01",
@@ -212,8 +319,7 @@ async def available_year_map_servers(
         else:
             url = f"{base_url}TIGERweb"
 
-    if cb:
-        map_server = cb_server_dict[geo]
+    map_server = geo_info.get(geo).get("cb_server")
     year_services = [
         f"{s}/{map_server}" if cb else s for s in service_names if pattern.search(s)
     ]
@@ -221,24 +327,15 @@ async def available_year_map_servers(
     return {s: f"{base_url}{s}/MapServer/legend" for s in year_services}
 
 
-async def get_json_with_cache(http_client, url: str):
+async def get_json_with_cache(http_client, url: str) -> dict:
     cache_path = get_cache_path(url)
 
     if os.path.exists(cache_path):
-        try:
-            with open(cache_path, "r") as f:
-                return json.load(f)
-        except (IOError, json.JSONDecodeError):
-            pass
+        with open(cache_path, "r") as f:
+            return json.load(f)
 
-    try:
-        response = await http_client.fetch(f"{url}?f=pjson")
-        if response.code == 200:
-            content = response.body.decode()
-            with open(cache_path, "w") as f:
-                f.write(content)
-            return json.loads(content)
-    except Exception as e:
-        print(f"Error fetching {url}: {e}")
-
-    return None
+    response = await http_client.fetch(f"{url}?f=pjson")
+    content = response.body.decode()
+    with open(cache_path, "w") as f:
+        f.write(content)
+    return json.loads(content)

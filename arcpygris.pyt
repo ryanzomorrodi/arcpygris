@@ -24,12 +24,11 @@ class Toolbox:
 
 
 class ArcpygrisTool:
-    def __init__(self):
+    def __init__(self, label="Arcpygris Tool"):
         """Define the tool (tool name is the name of the class)."""
-        self.label = "Arcpygris Tool"
+        self.label = label
         self.description = ""
-
-        self.geography_list = []
+        self.geography_list = list(tigerweb.geo_groups[label].keys())
 
     def getParameterInfo(self):
         """Define the tool parameters."""
@@ -111,6 +110,10 @@ class ArcpygrisTool:
         param_states = parameters[4]
 
         req_geography = param_geography.valueAsText
+        req_geography_cb_server = tigerweb.geo_info[req_geography]["cb_server"]
+        req_geography_is_state_subsettable = tigerweb.geo_info[req_geography][
+            "is_state_subsettable"
+        ]
         req_type = param_type.valueAsText
         req_cb = param_type.valueAsText == "Cartographic"
         req_year = param_year.valueAsText
@@ -119,7 +122,7 @@ class ArcpygrisTool:
             req_geography in param_geography.filter.list
             and req_type in param_type.filter.list
         ):
-            if req_cb and req_geography not in tigerweb.cb_server_dict.keys():
+            if req_cb and req_geography_cb_server is None:
                 param_year.filter.list = []
                 param_year.enabled = False
             else:
@@ -145,7 +148,7 @@ class ArcpygrisTool:
             else:
                 param_resolution.enabled = False
 
-            if req_geography in tigerweb.is_state_subsettable:
+            if req_geography_is_state_subsettable:
                 param_states.enabled = True
             else:
                 param_states.enabled = False
@@ -164,6 +167,7 @@ class ArcpygrisTool:
         param_type = parameters[1]
 
         req_geography = param_geography.valueAsText
+        req_geography_cb_server = tigerweb.geo_info[req_geography]["cb_server"]
         req_type = param_type.valueAsText
         req_cb = param_type.valueAsText == "Cartographic"
 
@@ -171,7 +175,7 @@ class ArcpygrisTool:
             req_geography in param_geography.filter.list
             and req_type in param_type.filter.list
         ):
-            if req_cb and req_geography not in tigerweb.cb_server_dict.keys():
+            if req_cb and req_geography_cb_server is None:
                 param_type.setErrorMessage(
                     f"{req_geography} cartographic boundaries are not available."
                 )
@@ -242,86 +246,31 @@ class ArcpygrisTool:
 
 class PrimaryNestedGeographies(ArcpygrisTool):
     def __init__(self):
-        super().__init__()
-        self.label = "Primary Nested Geographies"
-        self.geography_list = [
-            "Census Divisions",
-            "Census Regions",
-            "States",
-            "Counties",
-            "Census Tracts",
-            "Census Block Groups",
-            "Census Blocks",
-            "Zip Code Tabulation Areas",
-        ]
+        super().__init__(label="Primary Nested Geographies")
 
 
 class CBSAs(ArcpygrisTool):
     def __init__(self):
-        super().__init__()
-        self.label = "Core-Based Statistical Areas"
-        self.geography_list = [
-            "Combined Statistical Areas",
-            "Metropolitan Statistical Areas",
-            "Micropolitan Statistical Areas",
-            "Metropolitan New England City and Town Areas",
-            "Micropolitan New England City and Town Areas",
-            "Combined New England City and Town Areas",
-            "New England City and Town Area Divisions",
-        ]
+        super().__init__(label="Core-Based Statistical Areas")
 
 
 class Schools(ArcpygrisTool):
     def __init__(self):
-        super().__init__()
-        self.label = "Schools"
-        self.geography_list = [
-            "Unified School Districts",
-            "Secondary School Districts",
-            "Elementary School Districts",
-        ]
+        super().__init__(label="Schools")
 
 
 class Places(ArcpygrisTool):
     def __init__(self):
-        super().__init__()
-        self.label = "Places"
-        self.geography_list = [
-            "Subbarrios",
-            "Consolidated Cities",
-            "Incorporated Places",
-            "Census Designated Places",
-        ]
+        super().__init__(label="Places")
 
 
 class AIANNHA(ArcpygrisTool):
     def __init__(self):
-        super().__init__()
-        self.label = "American Indian, Alaska Native, and Native Hawaiian Areas"
-        self.geography_list = [
-            "Tribal Census Tracts",
-            "Tribal Block Groups",
-            "Tribal Subdivisions",
-            "Tribal Designated Statistical Areas",
-            "State Designated Tribal Statistical Areas",
-            "Oklahoma Tribal Statistical Areas",
-            "Federal American Indian Reservations",
-            "State American Indian Reservations",
-            "American Indian Joint-Use Areas ",
-            "Off-Reservation Trust Lands",
-            "Alaska Native Regional Corporations",
-            "Alaska Native Village Statistical Areas",
-            "Hawaiian Home Lands",
-        ]
+        super().__init__(
+            label="American Indian, Alaska Native, and Native Hawaiian Areas"
+        )
 
 
 class Legislative(ArcpygrisTool):
     def __init__(self):
-        super().__init__()
-        self.label = "Legislative"
-        self.geography_list = [
-            "Congressional Districts",
-            "State Legislative Districts - Upper",
-            "State Legislative Districts - Lower",
-            "Voting Districts",
-        ]
+        super().__init__(label="Legislative")
